@@ -1,0 +1,38 @@
+[
+    {
+        "task": "MMLU",
+        "debate_turns": 3,
+        "debate_agents": {
+            "Bob": "qwen3:8b",
+            "James": "qwen3:8b"
+        },
+        "debate_mode": "onebyone",
+        "debate_conf": true,
+        "single": false,
+        "cot": false,
+        "intervention": false,
+        "multi_persona": false,
+        "chateval": false,
+        "simultaneous": false,
+        "calibration": false,
+        "calibration_train": false,
+        "calibration_scheme": "temperature",
+        "calibration_conf": null,
+        "calibration_task": null,
+        "calibration_overwrite": false,
+        "categorical": false,
+        "categorical_bins": 10,
+        "top_logprobs": 10,
+        "low_index_calibration": 0,
+        "up_index_calibration": 1000,
+        "attempt_times": 2,
+        "conf_mode": "length_norm",
+        "conf_type": "score",
+        "cluster_sample_times": 10,
+        "output_dir": "./result",
+        "low_index": 0,
+        "up_index": 2000,
+        "save_interval": 10,
+        "num_workers": 1
+    }
+]
