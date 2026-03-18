@@ -16,7 +16,8 @@ debaters = {
         # "model": "llama-3.1-8b-instruct",
         # "model": "phi-4",
         # "model": "llama-3.1-70b-instruct",
-        "model":"llama-8b-sf",
+        # "model":"llama-8b-sf",
+        "model":"qwen-7b-sf",
         "agent_name": "Bob",
         "role_description": "General",
     },
@@ -39,12 +40,14 @@ debaters = {
         # "model": "gpt-3.5-turbo",
         # 原始llm如下
         # "model": "gpt-4o-mini",
+        "model":"qwen-7b-sf",
         "agent_name": "Alice",
         "role_description": "Mathematician",
     },
     "John": {
         # 原始llm如下
         # "model": "claude-3-haiku-20240307",
+        "model":"qwen-7b-sf",
         "agent_name": "John",
         "role_description": "Critic",
     }

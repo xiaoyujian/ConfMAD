@@ -70,10 +70,17 @@ class OpenAIAssistant(LanguageAssistant):
             params["temperature"] = temperature
         if top_p is not None:
             params["top_p"] = top_p
-        
-        response = self.openai_client.chat.completions.create(
-            **params
-        )
+
+        try:
+            response = self.openai_client.chat.completions.create(**params)
+        except Exception as e:
+            # 这里会打印出硅基流动拒绝请求的具体原因
+            print(f"\n❌ API 报错详情: {str(e)}")
+            # 为了防止 BrokenProcessPool，我们返回空值而不是让子进程直接炸掉
+            if logprob:
+                return "API ERROR", None
+            return "API ERROR"
+
         if logprob:
             token_list = response.choices[0].logprobs.content
             return response.choices[0].message.content, token_list
@@ -291,6 +298,14 @@ class ClaudeAssistant(LanguageAssistant):
         
         
 def LoadModel(model_info, pos):
+    if model_info.get("base_url") and "siliconflow" in model_info["base_url"]:
+        return OpenAIAssistant(
+            model_info.get("name", "assistant"),
+            model_info["model_name"],
+            api_key=model_info["api_key"],
+            base_url=model_info["base_url"],
+            kwargs=model_info.get("kwargs", {})
+        )
 
     if "llama" in model_info["model_name"].lower() or 'qwen' in model_info["model_name"].lower() \
         or 'deepseek' in model_info["model_name"].lower() or "phi" in model_info["model_name"].lower() \
