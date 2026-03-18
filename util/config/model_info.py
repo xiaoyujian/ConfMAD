@@ -3,11 +3,25 @@ import os
 openrouter_url = "https://openrouter.ai/api/v1"
 
 model_info = {
-    "glm-4-flash": {
-        "model_name": "glm-4-flash",
-        "model_path": "glm-4-flash",
-        "api_key": None,
-        "base_url": None,
+# 1. 完全免费的 Qwen 7B (代替 Phi-4)
+    "qwen-7b-sf": {
+        "model_name": "Qwen/Qwen2.5-7B-Instruct",
+        "api_key": "sk-rligpjczxhpmkvyjsfficuwdxzoyupnbtgspayjkwibsqekd",
+        "base_url": "https://api.siliconflow.cn/v1",
+        "kwargs": {}
+    },
+# 2. 完全免费的 LLaMA 8B (代替 4o-mini)
+    "llama-8b-sf": {
+        "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct",
+        "api_key": "sk-rligpjczxhpmkvyjsfficuwdxzoyupnbtgspayjkwibsqekd",
+        "base_url": "https://api.siliconflow.cn/v1",
+        "kwargs": {}
+    },
+# 3. 极低成本的巨型模型 (代替原版 70B)
+    "llama-70b-sf": {
+        "model_name": "meta-llama/Meta-Llama-3.1-70B-Instruct",
+        "api_key": "sk-rligpjczxhpmkvyjsfficuwdxzoyupnbtgspayjkwibsqekd",
+        "base_url": "https://api.siliconflow.cn/v1",
         "kwargs": {}
     },
     "mixtral-8x7b-instruct": {

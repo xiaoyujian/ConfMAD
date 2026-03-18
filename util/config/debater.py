@@ -12,7 +12,6 @@ debaters = {
         # "gpt-3.5-turbo"
         # 原始llm如下
         # "model": "gpt-4o-mini",
-        "model": "glm-4-flash",
         # "model": "qwen-2.5-72b-instruct",
         # "model": "llama-3.1-8b-instruct",
         # "model": "phi-4",
@@ -22,7 +21,6 @@ debaters = {
     },
     "James": {
         # "gpt-3.5-turbo"
-        "model": "glm-4-flash",
         # "model": "gpt-4o-mini",
         # "model": "claude-3-5-haiku-20241022",
         # "model": "claude-3-5-sonnet-20241022",
@@ -39,14 +37,12 @@ debaters = {
         # "model": "gpt-3.5-turbo",
         # 原始llm如下
         # "model": "gpt-4o-mini",
-        "model": "glm-4-flash",
         "agent_name": "Alice",
         "role_description": "Mathematician",
     },
     "John": {
         # 原始llm如下
         # "model": "claude-3-haiku-20240307",
-        "model": "glm-4-flash",
         "agent_name": "John",
         "role_description": "Critic",
     }

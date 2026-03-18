@@ -291,14 +291,6 @@ class ClaudeAssistant(LanguageAssistant):
         
         
 def LoadModel(model_info, pos):
-    if "glm" in model_info["model_name"].lower():
-        return OpenAIAssistant(
-            model_info["name"],
-            model_info["model_name"],
-            api_key="141ff9fc5cb5456ea2e8be265917f09a.EL3hJz6yNc2D2WCz",  # 确保这里填了真实的 Key
-            base_url="https://open.bigmodel.cn/api/paas/v4/",
-            kwargs=model_info.get("kwargs", {})
-        )
 
     if "llama" in model_info["model_name"].lower() or 'qwen' in model_info["model_name"].lower() \
         or 'deepseek' in model_info["model_name"].lower() or "phi" in model_info["model_name"].lower() \
