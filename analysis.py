@@ -9,8 +9,8 @@ import seaborn as sns
 sns.set_theme()
 
 # /home/zijie/Experiments/Debate/result/GSM/2024_09_09/17_26_13.json
-GSM_result_dir = "./result/GSM/2024_09_11"
-GSM_result_file = "22_40_11.json"
+GSM_result_dir = "./result/GSM/2026_03_16"
+GSM_result_file = "23_26_30.json"
 
 def AUC_ROC(y_true, y_score, title, output_file):
     fpr, tpr, thresholds = roc_curve(y_true, y_score)
@@ -229,6 +229,96 @@ def AnalysisGSMSingle():
     AUC_ROC(y_true, y_scores, GSM_result_file, os.path.join(path_figure,  file_name + "_single.png"))
 
 
+def AnalysisMMLUSingle():
+    # 1. 路径配置（确保指向你最新的 MMLU 结果）
+    MMLU_result_dir = "./result/MMLU/2026_03_16"
+    MMLU_result_file = "23_26_30.json"
+
+    # 动态创建输出目录
+    path = os.path.join("./result/MMLU", "Analysis", MMLU_result_dir.split("/")[-1])
+    os.makedirs(path, exist_ok=True)
+
+    # 读取数据
+    full_path = os.path.join(MMLU_result_dir, MMLU_result_file)
+    if not os.path.exists(full_path):
+        print(f"错误：找不到文件 {full_path}")
+        return
+
+    with open(full_path, "r", encoding='utf-8') as file:
+        data = json.load(file)
+
+    # 如果 JSON 开头是配置信息（字典），则跳过第一个元素取后面的列表
+    if isinstance(data, list) and len(data) > 0 and "task" in data[0]:
+        test_data = data[1:]
+    else:
+        test_data = data
+
+    res = []
+    # 为了演示先分析前 30 条
+    for debate in test_data[:30]:
+        # --- 提取正确答案数字 ---
+        # 例子: 从 "(1) 7 14" 中提取 "1"
+        gt_raw = debate.get("ground_truth", "")
+        gt_match = re.search(r'\((\d+)\)', str(gt_raw))
+        ground_truth = gt_match.group(1) if gt_match else None
+
+        # --- 提取辩论历史和最终答案 ---
+        history = debate.get("debate_history", [])
+        if not history:
+            continue
+
+        # 获取最后一次发言
+        last_turn = history[-1]
+        last_response = last_turn.get("response", "")
+
+        # 提取回答中的选项数字
+        # 例子: 从 "Answer: (1) 7 14" 中提取 "1"
+        ans_match = re.search(r'Answer:.*?\((\d+)\)', last_response, re.DOTALL)
+        r = ans_match.group(1) if ans_match else None
+
+        # --- 提取置信度 ---
+        # 从该条题目的所有辩论历史中提取平均置信度
+        conf_scores = [h.get("Confidence score") for h in history if h.get("Confidence score") is not None]
+        conf_ave = sum(conf_scores) / len(conf_scores) if conf_scores else 0
+
+        debate_status = {
+            "question": debate.get("question", "")[:100] + "...",
+            "ground_truth": ground_truth,
+            "prediction": r,
+            "correct": (r == ground_truth) and (r is not None),
+            "conf_ave": conf_ave,
+            "agent_model": last_turn.get("agent_model", "unknown")
+        }
+        res.append(debate_status)
+
+    # --- 统计与保存 ---
+    if not res:
+        print("没有提取到有效数据，请检查 JSON 格式。")
+        return
+
+    correct_rate = sum([1 for r in res if r["correct"]]) / len(res)
+    print(f"分析完成！当前文件 MMLU 准确率: {correct_rate:.2%}")
+
+    # 计算 ECE (调用你原有的函数)
+    asst_conf_list = [{"conf": r["conf_ave"], "label": r["correct"]} for r in res]
+    ece_score = CalculateECE(asst_conf_list)
+
+    # 保存结果
+    output_filename = "MMLU_analysis_" + os.path.splitext(MMLU_result_file)[0] + ".json"
+    with open(os.path.join(path, output_filename), "w", encoding='utf-8') as f:
+        json.dump({"summary": {"accuracy": correct_rate, "ece": ece_score}, "details": res}, f, indent=4,
+                  ensure_ascii=False)
+
+    # --- 绘制 ROC 曲线 (调用你原有的函数) ---
+    path_figure = os.path.join("./result/MMLU", "Analysis", "Figures", MMLU_result_dir.split("/")[-1])
+    os.makedirs(path_figure, exist_ok=True)
+    y_scores = [r["conf"] for r in asst_conf_list]
+    y_true = [r["label"] for r in asst_conf_list]
+    AUC_ROC(y_true, y_scores, "MMLU Single",
+            os.path.join(path_figure, os.path.splitext(MMLU_result_file)[0] + "_roc.png"))
+
+
 if __name__ == "__main__":
-    AnalysisGSMSingle()
+    # AnalysisGSMSingle()
     # AnalysisGSMDual()
+    AnalysisMMLUSingle()

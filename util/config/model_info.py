@@ -3,6 +3,13 @@ import os
 openrouter_url = "https://openrouter.ai/api/v1"
 
 model_info = {
+    "glm-4-flash": {
+        "model_name": "glm-4-flash",
+        "model_path": "glm-4-flash",
+        "api_key": None,
+        "base_url": None,
+        "kwargs": {}
+    },
     "mixtral-8x7b-instruct": {
         "model_name": "mistralai/mixtral-8x7b-instruct",
         "model_path": "mistralai/mixtral-8x7b-instruct",
@@ -113,11 +120,5 @@ model_info = {
         "api_key": None,
         "base_url": None,
         "kwargs": {"max_tokens": 512}
-    },
-    "qwen3-8b-local": {
-        "model_name": "qwen3:8b",  # 必须与你在 ollama list 中看到的名称完全一致
-        "api_key": "ollama",       # 随便填，因为调用 OpenAI 库必须有 key，但 Ollama 不校验
-        "base_url": "http://localhost:11434/v1", # Ollama 的 OpenAI 兼容 API 地址
-        "kwargs": {}
-    },
+    }
 }

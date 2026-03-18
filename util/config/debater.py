@@ -10,39 +10,43 @@ role_prompts = {
 debaters = {
     "Bob": {
         # "gpt-3.5-turbo"
+        # 原始llm如下
         # "model": "gpt-4o-mini",
+        "model": "glm-4-flash",
         # "model": "qwen-2.5-72b-instruct",
         # "model": "llama-3.1-8b-instruct",
         # "model": "phi-4",
         # "model": "llama-3.1-70b-instruct",
-        "model": "qwen3-8b-local",
         "agent_name": "Bob",
         "role_description": "General",
     },
     "James": {
         # "gpt-3.5-turbo"
+        "model": "glm-4-flash",
         # "model": "gpt-4o-mini",
         # "model": "claude-3-5-haiku-20241022",
         # "model": "claude-3-5-sonnet-20241022",
         # "model": "qwen-2.5-72b-instruct",
-        # "model": "phi-4",
+        # 原始llm如下
+        "model": "phi-4",
         # "model": "llama-3.1-70b-instruct",
         # "model": "mixtral-8x7b-instruct",
-        "model": "qwen3-8b-local",
         "agent_name": "James",
         "role_description": "Author",
     },
     "Alice": {
         # "model": "gpt-4o",
         # "model": "gpt-3.5-turbo",
+        # 原始llm如下
         # "model": "gpt-4o-mini",
-        "model": "qwen3-8b-local",
+        "model": "glm-4-flash",
         "agent_name": "Alice",
         "role_description": "Mathematician",
     },
     "John": {
+        # 原始llm如下
         # "model": "claude-3-haiku-20240307",
-        "model": "qwen3-8b-local",
+        "model": "glm-4-flash",
         "agent_name": "John",
         "role_description": "Critic",
     }

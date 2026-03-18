@@ -1,4 +1,11 @@
 import os
+import sys
+
+# 添加用户目录到 Python 搜索路径
+user_site = os.path.expanduser("~") + r"\AppData\Roaming\Python\Python312\site-packages"
+if os.path.exists(user_site):
+    sys.path.insert(0, user_site)
+
 import openai
 import anthropic
 import transformers
@@ -291,16 +298,6 @@ class ClaudeAssistant(LanguageAssistant):
         
         
 def LoadModel(model_info, pos):
-    # ==== 增加下面这段针对本地 Ollama 服务的拦截逻辑 ====
-    if model_info.get("base_url") and "localhost" in model_info["base_url"]:
-        return OpenAIAssistant(
-            model_info["name"],
-            model_info["model_name"],
-            model_info["api_key"],
-            model_info["base_url"],
-            kwargs=model_info["kwargs"]
-        )
-
     if "llama" in model_info["model_name"].lower() or 'qwen' in model_info["model_name"].lower() \
         or 'deepseek' in model_info["model_name"].lower() or "phi" in model_info["model_name"].lower() \
             or "mixtral" in model_info["model_name"].lower():
@@ -314,7 +311,11 @@ def LoadModel(model_info, pos):
             kwargs=model_info["kwargs"]
         )
     elif "gpt" in model_info["model_name"].lower() or "o1" in model_info["model_name"].lower():
-        if model_info["api_key"] is None:
+        if "glm" in model_info["model_name"].lower():
+            model_info["api_key"] = "141ff9fc5cb5456ea2e8be265917f09a.EL3hJz6yNc2D2WCz"  # 请务必替换为你的真实 Key
+            model_info["base_url"] = "https://open.bigmodel.cn/api/paas/v4/"
+            # ---------------------------------
+        elif model_info["api_key"] is None:
             model_info["api_key"] = os.getenv("OPENAI_API_KEY")
         return OpenAIAssistant(
             model_info["name"],
