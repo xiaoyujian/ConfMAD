@@ -28,7 +28,7 @@ debaters = {
         # "model": "claude-3-5-sonnet-20241022",
         # "model": "qwen-2.5-72b-instruct",
         # 原始llm如下
-        "model": "phi-4",
+        # "model": "phi-4",
         # "model": "llama-3.1-70b-instruct",
         # "model": "mixtral-8x7b-instruct",
         "agent_name": "James",
