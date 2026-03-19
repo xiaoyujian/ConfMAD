@@ -10,18 +10,10 @@ model_info = {
         "base_url": "https://api.siliconflow.cn/v1",
         "kwargs": {}
     },
-# 2. 完全免费的 LLaMA 8B (代替 4o-mini)
-    "llama-8b-sf": {
-        "model_name": "meta-llama/Meta-Llama-3.1-8B-Instruct",
-        "api_key": "sk-rligpjczxhpmkvyjsfficuwdxzoyupnbtgspayjkwibsqekd",
-        "base_url": "https://api.siliconflow.cn/v1",
-        "kwargs": {}
-    },
-# 3. 极低成本的巨型模型 (代替原版 70B)
-    "llama-70b-sf": {
-        "model_name": "meta-llama/Meta-Llama-3.1-70B-Instruct",
-        "api_key": "sk-rligpjczxhpmkvyjsfficuwdxzoyupnbtgspayjkwibsqekd",
-        "base_url": "https://api.siliconflow.cn/v1",
+    "local-qwen-8b": {
+        "model_name": "qwen:8b",  # 必须与你本地跑的模型名称完全一致（Ollama 中通常是 qwen:8b 或 qwen2.5:8b）
+        "api_key": "sk-local-dummy", # 本地不需要真实 Key，但必须随便填一个字符串防报错
+        "base_url": "http://localhost:11434/v1", # Ollama 的默认兼容 API 端口 (如果是 vLLM 请改为 8000)
         "kwargs": {}
     },
     "mixtral-8x7b-instruct": {

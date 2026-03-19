@@ -2,7 +2,9 @@ import argparse
 
 # 如果你不想每次跑实验都敲环境变量，可以直接在项目的入口文件里强行注入一个假的 Key。
 import os
-os.environ["OPENAI_API_KEY"] = "sk-dummy-key"
+os.environ["OPENAI_API_KEY"] = "sk-rligpjczxhpmkvyjsfficuwdxzoyupnbtgspayjkwibsqekd"
+# 将默认请求地址改为硅基流动的 API 端点
+os.environ["OPENAI_BASE_URL"] = "http://localhost:11434/v1"
 
 from util import (
     DebateOneByOne,

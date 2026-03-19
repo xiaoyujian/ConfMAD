@@ -298,12 +298,12 @@ class ClaudeAssistant(LanguageAssistant):
         
         
 def LoadModel(model_info, pos):
-    if model_info.get("base_url") and "siliconflow" in model_info["base_url"]:
+    if model_info.get("base_url", "") and ("siliconflow" in model_info.get("base_url", "") or "localhost" in model_info.get("base_url", "") or "127.0.0.1" in model_info.get("base_url", "")):
         return OpenAIAssistant(
             model_info.get("name", "assistant"),
             model_info["model_name"],
-            api_key=model_info["api_key"],
-            base_url=model_info["base_url"],
+            api_key=model_info.get("api_key", "sk-dummy-key"),  # 如果没填key，给个默认假key防报错
+            base_url=model_info.get("base_url", ""),
             kwargs=model_info.get("kwargs", {})
         )
 

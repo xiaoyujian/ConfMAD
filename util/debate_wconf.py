@@ -1105,25 +1105,35 @@ def DebateOneByOneInterventions(args):
         end_indices = start_indices[1:] + [end]
         end_indices[-1] = max(end_indices[-1], end)
 
-        with ProcessPoolExecutor(max_workers=args.num_workers) as executor:
-            futures = []
+        # 如果 num_workers 为 1，直接在主进程跑，避开所有多进程的序列化坑
+        if args.num_workers <= 1:
+            for s, e, p in zip(start_indices, end_indices, range(len(start_indices))):
+                print(f"Directly running range: {s} to {e} (Single Process Mode)")
+                # 直接调用函数，不经过 Executor
+                result = DebateOneByOneInterventionsFunc(args, s, e, p)
+                if result:
+                    combined_results.update(result)
+        else:
+            # 多进程模式
+            with ProcessPoolExecutor(max_workers=args.num_workers) as executor:
+                futures = []
+                for s, e, p in zip(start_indices, end_indices, range(args.num_workers)):
+                    print(f"Submitting task for range: {s} to {e}")
+                    futures.append(executor.submit(
+                        DebateOneByOneInterventionsFunc, args, s, e, p))
 
-            for start, end, pos in zip(start_indices, end_indices, range(args.num_workers)):
-                print(f"Submitting task for range: {start} to {end}")
-                futures.append(executor.submit(
-                    DebateOneByOneInterventionsFunc, args, start, end, pos))
+                for future in as_completed(futures):
+                    try:
+                        result = future.result()
+                        if result:
+                            print(f"Task completed with {len(result)} items")
+                            with lock:
+                                combined_results.update(result)
+                    except Exception as e:
+                        # 这里的报错通常是序列化失败，真正原因应在子进程函数里打印
+                        print(f"Main Process caught an error from worker: {e}")
 
-            for future in as_completed(futures):
-                try:
-                    result = future.result()
-                    print(f"Task completed with {len(result)} items")
-                    with lock:
-                        combined_results.update(result)
-                except Exception as e:
-                    print(f"Task generated an exception: {e}")
-                    print("Detailed traceback:")
-                    print(traceback.format_exc())
-
+        # 定期保存
         with lock:
             SaveToFile(args, DebateAgents(args), combined_results)
 
@@ -1131,83 +1141,92 @@ def DebateOneByOneInterventions(args):
 
 
 def DebateOneByOneInterventionsFunc(args, start_index=None, end_index=None, position=0):
-    # Load dataset
-    data_path = datapath.data_path
-    debate_data = load_jsonl_data(data_path[args.task])
+   try:
+       # Load dataset
+       data_path = datapath.data_path
+       debate_data = load_jsonl_data(data_path[args.task])
 
-    # Load debate agents
-    debate_agents = LoadDebateAgents(args, position)
+       # Load debate agents
+       debate_agents = LoadDebateAgents(args, position)
 
-    # Load debate prompt
-    debate_prompts = debate_prompt_ground_truth_answer_and_reason[args.task]['noconf']
-    if args.single:
-        debate_prompts = debate_prompt_ground_truth_answer_and_reason[args.task]['nodebate']
-        args.debate_turns = 1
-    
-    elif args.cot:
-        debate_prompts = debate_prompt_ground_truth_answer_and_reason[args.task]['cot']
-        args.debate_turns = 1
+       # Load debate prompt
+       debate_prompts = debate_prompt_ground_truth_answer_and_reason[args.task]['noconf']
+       if args.single:
+           debate_prompts = debate_prompt_ground_truth_answer_and_reason[args.task]['nodebate']
+           args.debate_turns = 1
 
-    debate_history = {}
-    # Iterate over the dataset
-    for idx, item in enumerate(tqdm(debate_data[start_index:end_index], desc=f'Debating {start_index}:{end_index}', position=position)):
-        real_index = idx + start_index
-        # Result list for debating
-        result = {
-            'question': item['question'],
-            'context': item['context'] if 'context' in item else None,
-            'ground_truth': ExtractAnswer(item['answer'], args.task),
-            'debate_history': [],
-        }
+       elif args.cot:
+           debate_prompts = debate_prompt_ground_truth_answer_and_reason[args.task]['cot']
+           args.debate_turns = 1
 
-        history = []
-        query_embedding = GetEmbeddings([item['question']])
-        z_all = []
-        for _ in range(args.debate_turns):
-            for debater in debate_agents:
-                # if len(history) == 0:
-                if len(history) < len(debate_agents):
-                    # No chat history, we do initial debate
-                    # We get the answer from the model first
-                    prompt_ans = debate_prompts['init']
-                    system_prompt, user_prompt = GetPromptsDebate(
-                        args.task, prompt_ans, debater, item)
-                    messages = [{'role': 'system', 'content': system_prompt}, {
-                        'role': 'user', 'content': user_prompt}]
-                    debate_response_ans, formatted_prompt = debater.debate(
-                        messages)
+       debate_history = {}
+       # Iterate over the dataset
+       for idx, item in enumerate(
+               tqdm(debate_data[start_index:end_index], desc=f'Debating {start_index}:{end_index}', position=position)):
+           real_index = idx + start_index
+           # Result list for debating
+           result = {
+               'question': item['question'],
+               'context': item['context'] if 'context' in item else None,
+               'ground_truth': ExtractAnswer(item['answer'], args.task),
+               'debate_history': [],
+           }
 
-                else:
-                    # Debate afterwards
-                    # We get the answer from the model first
-                    prompt_ans = debate_prompts['debate']
-                    system_prompt, user_prompt = GetPromptsDebate(
-                        args.task, prompt_ans, debater, item, z_all)
-                    messages = [{'role': 'system', 'content': system_prompt}, {
-                        'role': 'user', 'content': user_prompt}]
-                    debate_response_ans, formatted_prompt = debater.debate(
-                        messages)
+           history = []
+           query_embedding = GetEmbeddings([item['question']])
+           z_all = []
+           for _ in range(args.debate_turns):
+               for debater in debate_agents:
+                   # if len(history) == 0:
+                   if len(history) < len(debate_agents):
+                       # No chat history, we do initial debate
+                       # We get the answer from the model first
+                       prompt_ans = debate_prompts['init']
+                       system_prompt, user_prompt = GetPromptsDebate(
+                           args.task, prompt_ans, debater, item)
+                       messages = [{'role': 'system', 'content': system_prompt}, {
+                           'role': 'user', 'content': user_prompt}]
+                       debate_response_ans, formatted_prompt = debater.debate(
+                           messages)
 
-                history.append({
-                    'agent_name': debater.agent_name,
-                    'agent_model': debater.model.model,
-                    'prompt': formatted_prompt,
-                    'response': debate_response_ans + '\n',
-                })
-            
-            for i in range(len(debate_agents)):
-                z_all.append(history[-i-1])
-                
-            response_embeddings = GetEmbeddings([z['response'] for z in z_all])
-            quality_indices = quality_pruning(query_embedding, response_embeddings, len(z_all))
-            final_indices = diversity_pruning(response_embeddings, len(debate_agents), quality_indices)
-            z_all = [z_all[i] for i in final_indices]
-            z_all = misconception_refutation(z_all, debate_agents, result['question'])
-            
-        result['debate_history'] = history
-        debate_history[real_index] = result
+                   else:
+                       # Debate afterwards
+                       # We get the answer from the model first
+                       prompt_ans = debate_prompts['debate']
+                       system_prompt, user_prompt = GetPromptsDebate(
+                           args.task, prompt_ans, debater, item, z_all)
+                       messages = [{'role': 'system', 'content': system_prompt}, {
+                           'role': 'user', 'content': user_prompt}]
+                       debate_response_ans, formatted_prompt = debater.debate(
+                           messages)
 
-    return debate_history
+                   history.append({
+                       'agent_name': debater.agent_name,
+                       'agent_model': debater.model.model,
+                       'prompt': formatted_prompt,
+                       'response': debate_response_ans + '\n',
+                   })
+
+               for i in range(len(debate_agents)):
+                   z_all.append(history[-i - 1])
+
+               response_embeddings = GetEmbeddings([z['response'] for z in z_all])
+               quality_indices = quality_pruning(query_embedding, response_embeddings, len(z_all))
+               final_indices = diversity_pruning(response_embeddings, len(debate_agents), quality_indices)
+               z_all = [z_all[i] for i in final_indices]
+               z_all = misconception_refutation(z_all, debate_agents, result['question'])
+
+           result['debate_history'] = history
+           debate_history[real_index] = result
+
+       return debate_history
+   except Exception as e:
+       # --- 修改点 2: 拦截 API 异常并打印 ---
+       print(f"\n[Worker {position}] 运行出错!")
+       print(f"错误类型: {type(e).__name__}")
+       print(f"具体原因: {str(e)}")
+       # 返回空字典，确保程序不崩溃
+       return {}
 
 
 def DebateOneByOneMultiPersona(args):
