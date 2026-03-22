@@ -18,7 +18,7 @@ debaters = {
         # "model": "llama-3.1-70b-instruct",
         # "model":"llama-8b-sf",
         # "model":"qwen-7b-sf",
-        "model": "local-qwen-8b",
+        "model": "local-qwen3-4b",
         "agent_name": "Bob",
         "role_description": "General",
     },
@@ -33,7 +33,7 @@ debaters = {
         # "model": "llama-3.1-70b-instruct",
         # "model": "mixtral-8x7b-instruct",
         # "model":"qwen-7b-sf",
-        "model": "local-qwen-8b",
+        "model": "local-qwen3-4b",
         "agent_name": "James",
         "role_description": "Author",
     },
@@ -43,7 +43,7 @@ debaters = {
         # 原始llm如下
         # "model": "gpt-4o-mini",
         # "model":"qwen-7b-sf",
-        "model": "local-qwen-8b",
+        "model": "local-qwen3-4b",
         "agent_name": "Alice",
         "role_description": "Mathematician",
     },
@@ -51,7 +51,7 @@ debaters = {
         # 原始llm如下
         # "model": "claude-3-haiku-20240307",
         # "model":"qwen-7b-sf",
-        "model": "local-qwen-8b",
+        "model": "local-qwen3-4b",
         "agent_name": "John",
         "role_description": "Critic",
     }

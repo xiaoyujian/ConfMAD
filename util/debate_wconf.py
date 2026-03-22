@@ -741,23 +741,35 @@ def DebateOneByOneWithSemanticEntropy(args):
 
     combined_results = {}
 
-    with ProcessPoolExecutor(max_workers=args.num_workers) as executor:
-        futures = []
+    # 增加单进程直接运行模式 ---
+    if args.num_workers <= 1:
+        for start, end, pos in zip(start_indices, end_indices, range(len(start_indices))):
+            print(f"Directly running range: {start} to {end} (Single Process Mode)")
+            # 直接在主进程调用子函数，完全绕过序列化 (Pickle) 的坑
+            result = DebateOneByOneWithSemanticEntropyFunc(args, start, end, pos)
+            if result:
+                combined_results.update(result)
+    else:
+        # --- 保留原有的多进程逻辑 (供以后显卡算力充足时使用) ---
+        with ProcessPoolExecutor(max_workers=args.num_workers) as executor:
+            futures = []
 
-        for start, end, pos in zip(start_indices, end_indices, range(args.num_workers)):
-            print(f"Submitting task for range: {start} to {end}")
-            futures.append(executor.submit(
-                DebateOneByOneWithSemanticEntropyFunc, args, start, end, pos))
+            for start, end, pos in zip(start_indices, end_indices, range(args.num_workers)):
+                print(f"Submitting task for range: {start} to {end}")
+                futures.append(executor.submit(
+                    DebateOneByOneWithSemanticEntropyFunc, args, start, end, pos))
 
-        for future in as_completed(futures):
-            try:
-                result = future.result()
-                print(f"Task completed with {len(result)} items")
-                with lock:
-                    combined_results.update(result)
-            except Exception as e:
-                print(f"Task generated an exception: {e}")
-                traceback.print_exc()
+            for future in as_completed(futures):
+                try:
+                    result = future.result()
+                    if result:
+                        print(f"Task completed with {len(result)} items")
+                        with lock:
+                            combined_results.update(result)
+                except Exception as e:
+                    print(f"Task generated an exception: {e}")
+                    import traceback
+                    traceback.print_exc()
 
     print(f"Total results collected: {len(combined_results)}")
     with lock:
